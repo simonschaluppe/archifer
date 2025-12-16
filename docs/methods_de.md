@@ -166,4 +166,115 @@ $$
 Diese Abbildungen sind:
 - explizit,
 - versioniert,
-- Teil der Modella
+- Teil der Modellannahmen.
+
+---
+
+### 5.2 Prädikate und Indikatorfunktionen
+
+Ein Prädikat wird zu einer Indikatorfunktion
+
+$$
+m_i =
+\begin{cases}
+1 & \text{wenn Archetyp } i \text{ passt} \\
+0 & \text{sonst}
+\end{cases}
+$$
+
+Damit werden alle Constraints linear.
+
+---
+
+### 5.3 Strategien bei nicht passenden Kategorien
+
+**A — Aggregation:**  
+Modell wird auf Statistik aggregiert (bevorzugt).
+
+**B — Disaggregation:**  
+Aufteilung mit Annahmen (oft als weiche Constraints).
+
+**C — Latente Kategorien:**  
+Fortgeschritten, hohe Komplexität.
+
+---
+
+## 6. Weiche Constraints und Unsicherheit
+
+Weicher Constraint $k$:
+
+$$
+\sum_i w_i g_k(i) - b_k = s_k^+ - s_k^-
+$$
+
+mit
+
+$$
+s_k^+, s_k^- \ge 0
+$$
+
+Zielfunktion enthält:
+
+$$
+\min \sum_k \alpha_k (s_k^+ + s_k^-)
+$$
+
+---
+
+## 7. Lösungsmethoden
+
+### 7.1 Lineare Programmierung (LP)
+- schnell
+- konvex
+- gut interpretierbar
+
+### 7.2 Ganzzahlige lineare Programmierung (MILP)
+- diskrete Gebäudezahlen
+- höhere Rechenzeit
+
+### 7.3 Einordnung zu IPF
+IPF entspricht einer Maximum-Entropy-Lösung für reine kategoriale Randverteilungen.  
+LP/MILP ist allgemeiner für gemischte, numerische Constraints.
+
+---
+
+## 8. Diagnostik
+
+Ein Lösungsergebnis muss erklären:
+- ob das Problem lösbar ist,
+- welche Constraints verletzt sind,
+- wo Masse im Archetypenraum liegt.
+
+Typische Ausgaben:
+- Residuum $r_k = G_k(\mathbf{w}) - b_k$
+- relative Abweichungen
+- Sensitivitätsanalysen
+
+---
+
+## 9. Leitlinien für die Implementierung
+
+Trennung in:
+1. **Catalog**
+2. **Crosswalk**
+3. **ConstraintSet**
+4. **Solver**
+5. **Solution**
+
+Zentrale Abstraktion:
+
+> Ein Constraint ist ein Zielwert für  
+> $$
+> \sum_i w_i \, g(i)
+> $$
+> wobei $g(i)$ aus Prädikaten und numerischen Skalierungen entsteht.
+
+---
+
+## 10. Ziel dieser Methodik
+
+Diese Methodik macht Annahmen und Unsicherheiten **explizit und quantifizierbar**  
+und koppelt statistische Informationen systematisch an Gebäudesimulationen.
+
+ArcheInfer fungiert damit als **transparenter Übersetzer** zwischen Statistik und Ingenieurmodell.
+
