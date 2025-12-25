@@ -1,0 +1,40 @@
+#constraints.yaml
+
+targets:
+  Af_total: 878085
+  share_residential_Af: 0.61
+  share_energy_therm:
+    fossil: 0.31
+    biogene: 0.37
+    district_heat: 0.16
+    heat_pump: 0.15
+
+weights:
+  Af_total: 10
+  share_residential_Af: 10
+  share_energy_therm: 100
+
+constraints:
+  - name: Af_total
+    type: sum
+    column: Af_m2
+    hard: false
+    target: Af_total
+
+  - name: share_residential_Af
+    type: share
+    column: Af_m2
+    predicate: "usage_simplified == 'residential'"
+    hard: false
+    target: share_residential_Af
+
+  - name: share_energy_therm
+    type: share_group
+    column: E_therm_MWhyr
+    categories:
+      fossil: "energy_carrier_primary == 'fossil'"
+      biogene: "energy_carrier_primary == 'biogene'"
+      district_heat: "energy_carrier_primary == 'district_heat'"
+      heat_pump: "energy_carrier_primary == 'heat_pump'"
+    hard: false
+    targets: share_energy_therm
