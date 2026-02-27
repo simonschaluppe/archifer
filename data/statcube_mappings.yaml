@@ -1,0 +1,33 @@
+
+scale: 1000
+
+usage:
+  variables:
+    - count: building_number
+    - NGF: Af_m2
+  type: equals
+
+  mappings:
+    - residential=="yes": 
+        - Nutzung in ['Wohngebäude mit einer Wohnung', 'Wohngebäude mit zwei Wohnungen', 'Wohngebäude mit drei und mehr Wohnungen' ]
+    - usage=="Bürogebäude":
+        - Nutzung == ["Bürogebäude"]
+      usage=="leasure":
+        - Nutzung == "Gebäude für Kultur- und Freizeitzwecke sowie des Bildungs- und Gesundheitswesens"
+
+mappings:
+  usage:
+    field: usage
+    allowed_mappings:
+      res_single_u: [sfh, rh]
+      res_double_u: [sfh, rh]
+      res_multi_u: [rh, mfh]
+      hostel: [hotel]
+      hotel: [hotel]
+      office: [office]
+      retail: [trade]
+      communication: []
+      industry: [industry]
+      leasure: [leasure]
+
+

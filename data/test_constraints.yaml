@@ -1,0 +1,22 @@
+
+Af_total:
+  type: equals
+  column: Af_m2
+  target: 878085  
+
+
+Statcube_residential:
+  type: equals
+  column: Af_m2
+  filter: residential=='yes'
+  target: 541379
+
+
+Statcube_residential2:
+  type: greater than target
+  column: Af_m2
+  filter: 
+  - residential=='yes'
+  - building_period=='bis 1919'
+  target: 73302
+  
