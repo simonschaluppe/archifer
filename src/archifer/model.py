@@ -107,6 +107,10 @@ class BuildingSector:
 
         s_pos = pl.LpVariable(f"s_{c.name}_pos", lowBound=0)
         s_neg = pl.LpVariable(f"s_{c.name}_neg", lowBound=0)
+        # Store slack variables so they can be inspected after solving.
+        # Dictionary key = constraint name
+        self.slack_pos[c.name] = s_pos
+        self.slack_neg[c.name] = s_neg
         self.model += (lhs + s_pos - s_neg == rhs), c.name
         self.objective_terms.append(c.weight * (s_pos + s_neg))
 
@@ -267,70 +271,59 @@ class BuildingSector:
             for c in self.constraints
         ])
     
+    def slack_df(self) -> pd.DataFrame:
+        """
+        Return slack variables after solving.
 
-def make_filter_from_row(row, filter_cols):
-    # Create the same filter dictionary that model.py creates from one Excel row.
-    if isinstance(filter_cols, dict):
-        filter_pairs = list(filter_cols.items())
-    else:
-        filter_pairs = [(col, col) for col in filter_cols]
+        Interpretation:
+        - slack_pos > 0 means the left-hand side was too low and had to be increased.
+        - slack_neg > 0 means the left-hand side was too high and had to be reduced.
+        - absolute_slack = total deviation from the target.
+        - weighted_penalty = contribution to the objective function.
+        """
 
-    cfilter = {}
-    for constraint_col, archetype_col in filter_pairs:
-        value = row[constraint_col]
-        if is_empty(value):
-            continue
-        cfilter[archetype_col] = value
+        if not hasattr(self, "model"):
+            raise RuntimeError("Model has not been solved yet. Call bs.solve() first.")
 
-    return cfilter or None
+        rows = []
 
+        for c in self.constraints:
+            s_pos = self.slack_pos.get(c.name)
+            s_neg = self.slack_neg.get(c.name)
 
-def matching_ids(archetype_df, cfilter):
-    # Return archetype ids matching a filter dictionary.
-    if cfilter is None:
-        return archetype_df.index.tolist()
+            # Some constraints may have been skipped because no archetypes matched.
+            if s_pos is None or s_neg is None:
+                continue
 
-    mask = pd.Series(True, index=archetype_df.index)
-    for col, value in cfilter.items():
-        mask &= archetype_df[col].eq(value)
+            s_pos_value = pl.value(s_pos) or 0
+            s_neg_value = pl.value(s_neg) or 0
 
-    return archetype_df.index[mask].tolist()
+            rows.append({
+                "name": c.name,
+                "type": c.type,
+                "filter": c.filter,
+                "column": c.column,
+                "target": c.target,
+                "weight": c.weight,
+                "slack_pos": s_pos_value,
+                "slack_neg": s_neg_value,
+                "absolute_slack": s_pos_value + s_neg_value,
+                "weighted_penalty": c.weight * (s_pos_value + s_neg_value),
+            })
 
+        return pd.DataFrame(rows)
+        
+    def violated_constraints(self, min_slack: float = 1e-6) -> pd.DataFrame:
+        """
+        Return only constraints with relevant slack.
+        """
 
-def validate_constraints_df(
-    constraints_df,
-    archetype_df,
-    filter_cols,
-    target_col,
-    target_column_col,
-):
-    rows = []
+        df = self.slack_df()
 
-    for row_no, row in constraints_df.iterrows():
-        target_value = row.get(target_col, np.nan)
-        target_column = row.get(target_column_col, np.nan)
+        if df.empty:
+            return df
 
-        cfilter = make_filter_from_row(row, filter_cols)
-        ids = matching_ids(archetype_df, cfilter)
-
-        target_is_empty = is_empty(target_value)
-        target_column_is_empty = is_empty(target_column)
-
-        if target_column_is_empty:
-            target_column_exists = True
-            target_column_clean = None
-        else:
-            target_column_clean = target_column
-            target_column_exists = target_column_clean in archetype_df.columns
-
-        rows.append({
-            "row": row_no,
-            "n_matches": len(ids),
-            "target_value": target_value,
-            "target_value_empty": target_is_empty,
-            "target_column": target_column_clean,
-            "target_column_exists": target_column_exists,
-            "filter": cfilter,
-        })
-
-    return pd.DataFrame(rows)
+        return df.loc[df["absolute_slack"] > min_slack].sort_values(
+            "absolute_slack",
+            ascending=False,
+        )
