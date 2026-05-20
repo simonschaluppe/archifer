@@ -135,7 +135,7 @@ class BuildingSector:
         self,
         constraints_df: pd.DataFrame,
         filter_cols: list[str] | dict[str, str],
-        target: str,
+        target: str = "target_value",
         weight: float = 1_000_000,
         name_prefix: str = "constraint",
         target_column_col: str = "target_column", # where to find the target column name,
