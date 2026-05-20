@@ -138,26 +138,54 @@ class BuildingSector:
         target: str,
         weight: float = 1_000_000,
         name_prefix: str = "constraint",
-        target_column_col: str = "target_column", # where to find the target column name
+        target_column_col: str = "target_column", # where to find the target column name,
+        type:str = "absolute",
+        reference_cols: list[str] | dict[str, str] | None = None,
     ):
         """
         Add one Constraint per row in constraints_df.
 
-        constraints_df must contain:
-        - target: column name of numeric RHS target value
-        - target_column_col: archetype column to multiply with NFA
+        filter_cols:
+            Columns used for the archetype numerator (left hand side) filter.
 
-        If target_column_col is empty:
-            lhs = sum(NFA_i)
+        target:
+            Column containing the numeric RHS target value.
 
-        If target_column_col is filled:
-            lhs = sum(NFA_i * archetype_df.at[i, Target_Column])
+        type:
+            "absolute" or "share".
+
+        target_column_col:
+            Column containing the archetype multiplier column name.
+
+            If empty:
+                lhs = sum(NFA_i)
+
+            If filled:
+                lhs = sum(NFA_i * archetype_df.at[i, target_column])
+
+        reference_cols:
+            Columns used for the denominator/reference filter.
+            Behaves exactly like filter_cols.
+
+            If None:
+                no reference filter is applied.
+                For share constraints this means: share of all archetypes.
         """
+
+        if type not in ["absolute", "share"]:
+            raise ValueError("type must be 'absolute' or 'share'")
 
         if isinstance(filter_cols, dict):
             filter_pairs = list(filter_cols.items())
         else:
             filter_pairs = [(col, col) for col in filter_cols]
+
+        if reference_cols is None:
+            reference_pairs = []
+        elif isinstance(reference_cols, dict):
+            reference_pairs = list(reference_cols.items())
+        else:
+            reference_pairs = [(col, col) for col in reference_cols]
 
         for row_no, row in constraints_df.iterrows():
 
@@ -176,11 +204,20 @@ class BuildingSector:
             for constraint_col, archetype_col in filter_pairs:
                 value = row[constraint_col]
 
-                # empty filter value => do not apply this filter
                 if is_empty(value):
                     continue
 
                 cfilter[archetype_col] = value
+
+            reference_filter = {}
+
+            for constraint_col, archetype_col in reference_pairs:
+                value = row[constraint_col]
+
+                if is_empty(value):
+                    continue
+
+                reference_filter[archetype_col] = value
 
             self.add_constraint(
                 Constraint(
@@ -189,6 +226,8 @@ class BuildingSector:
                     column=target_column,
                     target=float(rhs),
                     weight=weight,
+                    type=type,
+                    reference_filter=reference_filter if reference_filter else None,
                 )
             )
 
