@@ -406,7 +406,7 @@ This reflects the current `BuildingSector` implementation with NFA decision vari
 
 ## Further resources
 
-- [Tutorial notebook: Building Sector Model](notebooks/building_sector_model_tutorial.ipynb)  
+- [Tutorial notebook: Building Sector Model](notebooks/building_sector_model_tutorial_updated.ipynb)  
   Step-by-step introduction to loading archetypes, adding NGF and EE constraints, solving the model, inspecting slacks, and plotting results.
 
 - [Example constraints workbook](data/constraints_sector_model.xlsx)  
