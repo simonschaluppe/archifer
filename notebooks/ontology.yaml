@@ -1,0 +1,100 @@
+meta:
+  version: 0.1
+  author: raphael drexel
+  create_date: 2026-01-09
+  description: "Semantic ontology for archetype modeling"
+
+concepts:
+
+# types of concepts
+  #categorical - finite set of attribute values, mutually exclusive
+  #quantitative - numerical attribute, continuous or discrete
+  #ordinal - finite set of attribute values, ordered
+  #derived - logical combination, derived from other concepts
+  #boolean - true/false attribute
+
+  energy_carrier_primary:
+      description: "Main energy carrier for heating"
+      type: categorical
+        values:
+        - fossil
+        - biogene
+        - district_heat
+        - heat_pump
+        - electricity
+
+  usage_simplified:
+      description: "Simplified usage category of the building"
+      type: categorical
+        values:
+        - residential
+        - non-residential
+        - mixed-use
+
+  usage_type_tabula:
+      description: "Detailed usage type according to TABULA classification"
+      type: categorical
+        values:
+        - single_family_house
+        - terraced_house
+        - multi_family_house
+        - apartment_building
+        - office
+        - retail
+        - education
+        - healthcare
+        - industrial
+        - other_non_residential
+
+  usage_type_statAT:
+      description: "Detailed usage type according to austrian statistics classification; Gebäudeigenschaft (überwiegende Nutzung)"
+      type: categorical
+        values:
+        - Wohngebäude mit einer Wohnung
+        - Wohngebäude mit zwei Wohnungen
+        - Wohngebäude mit drei und mehr Wohnungen
+        - Gebäude für Gemeinschaften
+        - Hotels und ähnliche Gebäude
+        - Bürogebäude
+        - Groß- und Einzelhandelsgebäude
+        - Gebäude des Verkehrs- und Nachrichtenwesens
+        - Industrie- und Lagergebäude
+        - Gebäude für Kultur- und Freizeitzwecke sowie des Bildungs- und Gesundheitswesens
+
+  building_period_statAT:
+      description: "Construction period of the building according to austrian statistics classification; Bauperiode (Ebene +2)"
+      type: ordinal
+        values:
+          - Vor 1919
+          - 1919 bis 1944
+          - 1945 bis 1960
+          - 1961 bis 1970
+          - 1971 bis 1980
+          - 1981 bis 1990
+          - 1991 bis 2000
+          - 2001 bis 2010
+          - 2011 und später
+
+
+  building_status:
+      description: "Status of the building"
+      type: categorical
+        values:
+          - existing
+          - renovated
+
+  renovation_standard:
+      description: "Renovation standard applied to the building"
+      subset_of: building_status/renovated
+      type: categorical
+        values:
+          - window_only
+          - autrian_building_code
+          - enerPHit
+
+  heating_demand:
+      description: "Annual heating demand of the building in kWh/m2a"
+      type: quantitative
+      unit: "kWh/m2a"
+
+  
